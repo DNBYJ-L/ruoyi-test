@@ -1,0 +1,55 @@
+# ========== Backend ==========
+target/
+*.log
+*.xml.versionsBackup
+*.swp
+!.mvn/wrapper/maven-wrapper.jar
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+*.iws
+*.iml
+*.ipr
+rebel.xml
+nbproject/private/
+build/*
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+.gradle
+*/build/
+!*/build/*.java
+!*/build/*.html
+!*/build/*.xml
+
+# ========== Frontend ==========
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tests/**/coverage/
+tests/e2e/reports
+selenium-debug.log
+
+# ========== IDE ==========
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.local
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========== Lock files (optional) ==========
+package-lock.json
+yarn.lock
