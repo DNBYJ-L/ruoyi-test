@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.teacher.TeaDisciplineMapper">
+
+	<resultMap type="com.ruoyi.system.domain.teacher.TeaDiscipline" id="TeaDisciplineResult">
+		<id     property="disciplineId"      column="discipline_id"      />
+		<result property="teacherId"         column="teacher_id"         />
+		<result property="firstDiscipline"   column="first_discipline"   />
+		<result property="secondDiscipline"  column="second_discipline"  />
+		<result property="researchDirection" column="research_direction" />
+		<result property="createBy"          column="create_by"          />
+		<result property="createTime"        column="create_time"        />
+		<result property="updateBy"          column="update_by"          />
+		<result property="updateTime"        column="update_time"        />
+	</resultMap>
+
+	<select id="selectDisciplineByTeacherId" parameterType="Long" resultMap="TeaDisciplineResult">
+		select discipline_id, teacher_id, first_discipline, second_discipline,
+			research_direction, create_by, create_time
+		from tea_discipline
+		where teacher_id = #{teacherId}
+	</select>
+
+	<insert id="insertDiscipline" parameterType="com.ruoyi.system.domain.teacher.TeaDiscipline" useGeneratedKeys="true" keyProperty="disciplineId">
+		insert into tea_discipline(
+			<if test="teacherId != null">teacher_id,</if>
+			<if test="firstDiscipline != null and firstDiscipline != ''">first_discipline,</if>
+			<if test="secondDiscipline != null and secondDiscipline != ''">second_discipline,</if>
+			<if test="researchDirection != null and researchDirection != ''">research_direction,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="teacherId != null">#{teacherId},</if>
+			<if test="firstDiscipline != null and firstDiscipline != ''">#{firstDiscipline},</if>
+			<if test="secondDiscipline != null and secondDiscipline != ''">#{secondDiscipline},</if>
+			<if test="researchDirection != null and researchDirection != ''">#{researchDirection},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateDiscipline" parameterType="com.ruoyi.system.domain.teacher.TeaDiscipline">
+		update tea_discipline
+		<set>
+			<if test="firstDiscipline != null">first_discipline = #{firstDiscipline},</if>
+			<if test="secondDiscipline != null">second_discipline = #{secondDiscipline},</if>
+			<if test="researchDirection != null">research_direction = #{researchDirection},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where discipline_id = #{disciplineId}
+	</update>
+
+	<delete id="deleteDisciplineByTeacherId" parameterType="Long">
+		delete from tea_discipline where teacher_id = #{teacherId}
+	</delete>
+
+	<delete id="deleteDisciplineByTeacherIds" parameterType="Long">
+		delete from tea_discipline where teacher_id in
+		<foreach collection="array" item="teacherId" open="(" separator="," close=")">
+			#{teacherId}
+		</foreach>
+	</delete>
+
+</mapper>

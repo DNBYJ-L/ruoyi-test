@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.teacher.TeaTitleRecordMapper">
+
+	<resultMap type="com.ruoyi.system.domain.teacher.TeaTitleRecord" id="TeaTitleRecordResult">
+		<id     property="recordId"      column="record_id"      />
+		<result property="teacherId"     column="teacher_id"     />
+		<result property="titleName"     column="title_name"     />
+		<result property="titleSeries"   column="title_series"   />
+		<result property="obtainDate"    column="obtain_date"    />
+		<result property="hirePosition"  column="hire_position"  />
+		<result property="isCurrent"     column="is_current"     />
+		<result property="createBy"      column="create_by"      />
+		<result property="createTime"    column="create_time"    />
+		<result property="updateBy"      column="update_by"      />
+		<result property="updateTime"    column="update_time"    />
+	</resultMap>
+
+	<select id="selectTitleRecordByTeacherId" parameterType="Long" resultMap="TeaTitleRecordResult">
+		select record_id, teacher_id, title_name, title_series, obtain_date,
+			hire_position, is_current, create_by, create_time
+		from tea_title_record
+		where teacher_id = #{teacherId}
+		order by obtain_date asc
+	</select>
+
+	<insert id="insertTitleRecord" parameterType="com.ruoyi.system.domain.teacher.TeaTitleRecord" useGeneratedKeys="true" keyProperty="recordId">
+		insert into tea_title_record(
+			<if test="teacherId != null">teacher_id,</if>
+			<if test="titleName != null and titleName != ''">title_name,</if>
+			<if test="titleSeries != null and titleSeries != ''">title_series,</if>
+			<if test="obtainDate != null">obtain_date,</if>
+			<if test="hirePosition != null and hirePosition != ''">hire_position,</if>
+			<if test="isCurrent != null and isCurrent != ''">is_current,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="teacherId != null">#{teacherId},</if>
+			<if test="titleName != null and titleName != ''">#{titleName},</if>
+			<if test="titleSeries != null and titleSeries != ''">#{titleSeries},</if>
+			<if test="obtainDate != null">#{obtainDate},</if>
+			<if test="hirePosition != null and hirePosition != ''">#{hirePosition},</if>
+			<if test="isCurrent != null and isCurrent != ''">#{isCurrent},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateTitleRecord" parameterType="com.ruoyi.system.domain.teacher.TeaTitleRecord">
+		update tea_title_record
+		<set>
+			<if test="titleName != null and titleName != ''">title_name = #{titleName},</if>
+			<if test="titleSeries != null">title_series = #{titleSeries},</if>
+			<if test="obtainDate != null">obtain_date = #{obtainDate},</if>
+			<if test="hirePosition != null">hire_position = #{hirePosition},</if>
+			<if test="isCurrent != null">is_current = #{isCurrent},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where record_id = #{recordId}
+	</update>
+
+	<delete id="deleteTitleRecordByTeacherId" parameterType="Long">
+		delete from tea_title_record where teacher_id = #{teacherId}
+	</delete>
+
+	<delete id="deleteTitleRecordByTeacherIds" parameterType="Long">
+		delete from tea_title_record where teacher_id in
+		<foreach collection="array" item="teacherId" open="(" separator="," close=")">
+			#{teacherId}
+		</foreach>
+	</delete>
+
+</mapper>

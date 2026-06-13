@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.teacher.TeaSalaryRecordMapper">
+
+	<resultMap type="com.ruoyi.system.domain.teacher.TeaSalaryRecord" id="TeaSalaryRecordResult">
+		<id     property="recordId"           column="record_id"           />
+		<result property="teacherId"          column="teacher_id"          />
+		<result property="salaryYear"         column="salary_year"         />
+		<result property="salaryMonth"        column="salary_month"        />
+		<result property="postSalary"         column="post_salary"         />
+		<result property="scaleSalary"        column="scale_salary"        />
+		<result property="basePerformance"    column="base_performance"    />
+		<result property="rewardPerformance"  column="reward_performance"  />
+		<result property="talentAllowance"    column="talent_allowance"    />
+		<result property="housingAllowance"   column="housing_allowance"   />
+		<result property="otherAllowance"     column="other_allowance"     />
+		<result property="socialInsurance"    column="social_insurance"    />
+		<result property="housingFund"        column="housing_fund"        />
+		<result property="incomeTax"          column="income_tax"          />
+		<result property="actualSalary"       column="actual_salary"       />
+		<result property="grossSalary"        column="gross_salary"        />
+		<result property="issueStatus"        column="issue_status"        />
+		<result property="createBy"           column="create_by"           />
+		<result property="createTime"         column="create_time"         />
+		<result property="updateBy"           column="update_by"           />
+		<result property="updateTime"         column="update_time"         />
+		<result property="remark"             column="remark"              />
+		<result property="teacherNo"          column="teacher_no"          />
+		<result property="teacherName"        column="teacher_name"        />
+		<result property="deptName"           column="dept_name"           />
+	</resultMap>
+
+	<sql id="selectSalaryRecordVo">
+		select r.record_id, r.teacher_id, r.salary_year, r.salary_month, r.post_salary, r.scale_salary,
+			r.base_performance, r.reward_performance, r.talent_allowance, r.housing_allowance,
+			r.other_allowance, r.social_insurance, r.housing_fund, r.income_tax,
+			r.actual_salary, r.gross_salary, r.issue_status, r.create_by, r.create_time, r.remark,
+			t.teacher_no, t.teacher_name, d.dept_name
+		from tea_salary_record r
+		left join tea_teacher t on t.teacher_id = r.teacher_id
+		left join sys_dept d on d.dept_id = t.dept_id
+    </sql>
+
+	<select id="selectSalaryRecordList" parameterType="com.ruoyi.system.domain.teacher.TeaSalaryRecord" resultMap="TeaSalaryRecordResult">
+	    <include refid="selectSalaryRecordVo"/>
+		<where>
+			<if test="teacherId != null">AND r.teacher_id = #{teacherId}</if>
+			<if test="salaryYear != null">AND r.salary_year = #{salaryYear}</if>
+			<if test="salaryMonth != null">AND r.salary_month = #{salaryMonth}</if>
+			<if test="issueStatus != null and issueStatus != ''">AND r.issue_status = #{issueStatus}</if>
+			<if test="teacherNo != null and teacherNo != ''">AND t.teacher_no like concat('%', #{teacherNo}, '%')</if>
+			<if test="teacherName != null and teacherName != ''">AND t.teacher_name like concat('%', #{teacherName}, '%')</if>
+		</where>
+		order by r.salary_year desc, r.salary_month desc, r.record_id desc
+	</select>
+
+	<select id="selectSalaryRecordById" parameterType="Long" resultMap="TeaSalaryRecordResult">
+		<include refid="selectSalaryRecordVo"/>
+		where r.record_id = #{recordId}
+	</select>
+
+	<select id="selectSalaryRecordByTeacherId" parameterType="Long" resultMap="TeaSalaryRecordResult">
+		<include refid="selectSalaryRecordVo"/>
+		where r.teacher_id = #{teacherId}
+		order by r.salary_year desc, r.salary_month desc
+	</select>
+
+	<select id="selectSalaryKpi" parameterType="java.util.Map" resultType="java.util.Map">
+		select
+			COALESCE(SUM(gross_salary), 0) as totalGross,
+			COALESCE(SUM(actual_salary), 0) as totalActual,
+			COUNT(*) as totalCount,
+			COUNT(DISTINCT teacher_id) as teacherCount
+		from tea_salary_record
+		<where>
+			<if test="salaryYear != null">AND salary_year = #{salaryYear}</if>
+		</where>
+	</select>
+
+	<select id="selectSalaryByDept" parameterType="java.util.Map" resultType="java.util.Map">
+		select
+			d.dept_name as deptName,
+			COALESCE(SUM(r.gross_salary), 0) as totalSalary,
+			COALESCE(AVG(r.gross_salary), 0) as avgSalary,
+			COUNT(DISTINCT r.teacher_id) as teacherCount
+		from tea_salary_record r
+		left join tea_teacher t on t.teacher_id = r.teacher_id
+		left join sys_dept d on d.dept_id = t.dept_id
+		<where>
+			<if test="salaryYear != null">AND r.salary_year = #{salaryYear}</if>
+		</where>
+		group by d.dept_id, d.dept_name
+		order by totalSalary desc
+	</select>
+
+	<insert id="insertSalaryRecord" parameterType="com.ruoyi.system.domain.teacher.TeaSalaryRecord" useGeneratedKeys="true" keyProperty="recordId">
+		insert into tea_salary_record(
+			teacher_id, salary_year, salary_month, post_salary, scale_salary,
+			base_performance, reward_performance, talent_allowance, housing_allowance,
+			other_allowance, social_insurance, housing_fund, income_tax,
+			actual_salary, gross_salary, issue_status,
+			<if test="remark != null and remark != ''">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			#{teacherId}, #{salaryYear}, #{salaryMonth}, #{postSalary}, #{scaleSalary},
+			#{basePerformance}, #{rewardPerformance}, #{talentAllowance}, #{housingAllowance},
+			#{otherAllowance}, #{socialInsurance}, #{housingFund}, #{incomeTax},
+			#{actualSalary}, #{grossSalary}, #{issueStatus},
+			<if test="remark != null and remark != ''">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateSalaryRecord" parameterType="com.ruoyi.system.domain.teacher.TeaSalaryRecord">
+		update tea_salary_record
+		<set>
+			<if test="postSalary != null">post_salary = #{postSalary},</if>
+			<if test="scaleSalary != null">scale_salary = #{scaleSalary},</if>
+			<if test="basePerformance != null">base_performance = #{basePerformance},</if>
+			<if test="rewardPerformance != null">reward_performance = #{rewardPerformance},</if>
+			<if test="talentAllowance != null">talent_allowance = #{talentAllowance},</if>
+			<if test="housingAllowance != null">housing_allowance = #{housingAllowance},</if>
+			<if test="otherAllowance != null">other_allowance = #{otherAllowance},</if>
+			<if test="socialInsurance != null">social_insurance = #{socialInsurance},</if>
+			<if test="housingFund != null">housing_fund = #{housingFund},</if>
+			<if test="incomeTax != null">income_tax = #{incomeTax},</if>
+			<if test="actualSalary != null">actual_salary = #{actualSalary},</if>
+			<if test="grossSalary != null">gross_salary = #{grossSalary},</if>
+			<if test="issueStatus != null and issueStatus != ''">issue_status = #{issueStatus},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where record_id = #{recordId}
+	</update>
+
+	<delete id="deleteSalaryRecordById" parameterType="Long">
+		delete from tea_salary_record where record_id = #{recordId}
+	</delete>
+
+	<delete id="deleteSalaryRecordByIds" parameterType="Long">
+		delete from tea_salary_record where record_id in
+		<foreach collection="array" item="recordId" open="(" separator="," close=")">
+			#{recordId}
+		</foreach>
+	</delete>
+
+	<select id="selectExistingRecord" parameterType="java.util.Map" resultMap="TeaSalaryRecordResult">
+		select record_id from tea_salary_record
+		where teacher_id = #{teacherId} and salary_year = #{salaryYear} and salary_month = #{salaryMonth}
+		limit 1
+	</select>
+
+</mapper>

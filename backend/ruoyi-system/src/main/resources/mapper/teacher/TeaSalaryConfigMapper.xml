@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.teacher.TeaSalaryConfigMapper">
+
+	<resultMap type="com.ruoyi.system.domain.teacher.TeaSalaryConfig" id="TeaSalaryConfigResult">
+		<id     property="configId"         column="config_id"         />
+		<result property="titleLevel"       column="title_level"       />
+		<result property="postSalary"       column="post_salary"       />
+		<result property="scaleSalary"      column="scale_salary"      />
+		<result property="basePerformance"  column="base_performance"  />
+		<result property="talentAllowance"  column="talent_allowance"  />
+		<result property="housingAllowance" column="housing_allowance" />
+		<result property="status"           column="status"            />
+		<result property="createBy"         column="create_by"         />
+		<result property="createTime"       column="create_time"       />
+		<result property="updateBy"         column="update_by"         />
+		<result property="updateTime"       column="update_time"       />
+		<result property="remark"           column="remark"            />
+	</resultMap>
+
+	<select id="selectSalaryConfigList" parameterType="com.ruoyi.system.domain.teacher.TeaSalaryConfig" resultMap="TeaSalaryConfigResult">
+		select config_id, title_level, post_salary, scale_salary, base_performance,
+			talent_allowance, housing_allowance, status, create_by, create_time, remark
+		from tea_salary_config
+		<where>
+			<if test="titleLevel != null and titleLevel != ''">AND title_level like concat('%', #{titleLevel}, '%')</if>
+			<if test="status != null and status != ''">AND status = #{status}</if>
+		</where>
+	</select>
+
+	<select id="selectSalaryConfigById" parameterType="Long" resultMap="TeaSalaryConfigResult">
+		select config_id, title_level, post_salary, scale_salary, base_performance,
+			talent_allowance, housing_allowance, status, create_by, create_time, remark
+		from tea_salary_config where config_id = #{configId}
+	</select>
+
+	<select id="selectSalaryConfigByTitleLevel" parameterType="String" resultMap="TeaSalaryConfigResult">
+		select config_id, title_level, post_salary, scale_salary, base_performance,
+			talent_allowance, housing_allowance, status
+		from tea_salary_config where title_level = #{titleLevel} and status = '0' limit 1
+	</select>
+
+	<insert id="insertSalaryConfig" parameterType="com.ruoyi.system.domain.teacher.TeaSalaryConfig" useGeneratedKeys="true" keyProperty="configId">
+		insert into tea_salary_config(
+			<if test="titleLevel != null and titleLevel != ''">title_level,</if>
+			<if test="postSalary != null">post_salary,</if>
+			<if test="scaleSalary != null">scale_salary,</if>
+			<if test="basePerformance != null">base_performance,</if>
+			<if test="talentAllowance != null">talent_allowance,</if>
+			<if test="housingAllowance != null">housing_allowance,</if>
+			<if test="status != null and status != ''">status,</if>
+			<if test="remark != null and remark != ''">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="titleLevel != null and titleLevel != ''">#{titleLevel},</if>
+			<if test="postSalary != null">#{postSalary},</if>
+			<if test="scaleSalary != null">#{scaleSalary},</if>
+			<if test="basePerformance != null">#{basePerformance},</if>
+			<if test="talentAllowance != null">#{talentAllowance},</if>
+			<if test="housingAllowance != null">#{housingAllowance},</if>
+			<if test="status != null and status != ''">#{status},</if>
+			<if test="remark != null and remark != ''">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateSalaryConfig" parameterType="com.ruoyi.system.domain.teacher.TeaSalaryConfig">
+		update tea_salary_config
+		<set>
+			<if test="titleLevel != null and titleLevel != ''">title_level = #{titleLevel},</if>
+			<if test="postSalary != null">post_salary = #{postSalary},</if>
+			<if test="scaleSalary != null">scale_salary = #{scaleSalary},</if>
+			<if test="basePerformance != null">base_performance = #{basePerformance},</if>
+			<if test="talentAllowance != null">talent_allowance = #{talentAllowance},</if>
+			<if test="housingAllowance != null">housing_allowance = #{housingAllowance},</if>
+			<if test="status != null and status != ''">status = #{status},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where config_id = #{configId}
+	</update>
+
+	<delete id="deleteSalaryConfigById" parameterType="Long">
+		delete from tea_salary_config where config_id = #{configId}
+	</delete>
+
+	<delete id="deleteSalaryConfigByIds" parameterType="Long">
+		delete from tea_salary_config where config_id in
+		<foreach collection="array" item="configId" open="(" separator="," close=")">
+			#{configId}
+		</foreach>
+	</delete>
+
+</mapper>

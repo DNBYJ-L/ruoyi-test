@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.teacher.TeaTeacherMapper">
+
+	<resultMap type="com.ruoyi.system.domain.teacher.TeaTeacher" id="TeaTeacherResult">
+		<id     property="teacherId"       column="teacher_id"       />
+		<result property="teacherNo"       column="teacher_no"       />
+		<result property="teacherName"     column="teacher_name"     />
+		<result property="gender"          column="gender"           />
+		<result property="birthDate"       column="birth_date"       />
+		<result property="idCard"          column="id_card"          />
+		<result property="nation"          column="nation"           />
+		<result property="politicalStatus" column="political_status" />
+		<result property="phone"           column="phone"            />
+		<result property="email"           column="email"            />
+		<result property="officeAddress"   column="office_address"   />
+		<result property="emergencyContact" column="emergency_contact" />
+		<result property="emergencyPhone"  column="emergency_phone"  />
+		<result property="avatar"          column="avatar"           />
+		<result property="deptId"          column="dept_id"          />
+		<result property="status"          column="status"           />
+		<result property="delFlag"         column="del_flag"         />
+		<result property="createBy"        column="create_by"        />
+		<result property="createTime"      column="create_time"      />
+		<result property="updateBy"        column="update_by"        />
+		<result property="updateTime"      column="update_time"      />
+		<result property="remark"          column="remark"           />
+		<result property="deptName"        column="dept_name"        />
+		<result property="currentTitle"    column="current_title"    />
+	</resultMap>
+
+	<sql id="selectTeacherVo">
+		select t.teacher_id, t.teacher_no, t.teacher_name, t.gender, t.birth_date, t.id_card,
+			t.nation, t.political_status, t.phone, t.email, t.office_address,
+			t.emergency_contact, t.emergency_phone, t.avatar, t.dept_id, t.status,
+			t.del_flag, t.create_by, t.create_time, t.update_by, t.update_time, t.remark,
+			d.dept_name
+		from tea_teacher t
+		left join sys_dept d on d.dept_id = t.dept_id
+    </sql>
+
+	<select id="selectTeacherList" parameterType="com.ruoyi.system.domain.teacher.TeaTeacher" resultMap="TeaTeacherResult">
+	    <include refid="selectTeacherVo"/>
+		<where>
+			t.del_flag = '0'
+			<if test="teacherNo != null and teacherNo != ''">
+				AND t.teacher_no like concat('%', #{teacherNo}, '%')
+			</if>
+			<if test="teacherName != null and teacherName != ''">
+				AND t.teacher_name like concat('%', #{teacherName}, '%')
+			</if>
+			<if test="gender != null and gender != ''">
+				AND t.gender = #{gender}
+			</if>
+			<if test="status != null and status != ''">
+				AND t.status = #{status}
+			</if>
+			<if test="deptId != null">
+				AND (t.dept_id = #{deptId} OR t.dept_id IN (SELECT sd.dept_id FROM sys_dept sd WHERE FIND_IN_SET(#{deptId}, sd.ancestors)))
+			</if>
+		</where>
+		order by t.teacher_id desc
+	</select>
+
+	<select id="selectTeacherById" parameterType="Long" resultMap="TeaTeacherResult">
+		<include refid="selectTeacherVo"/>
+		where t.teacher_id = #{teacherId} and t.del_flag = '0'
+	</select>
+
+	<select id="checkTeacherNoUnique" parameterType="String" resultMap="TeaTeacherResult">
+		<include refid="selectTeacherVo"/>
+		where t.teacher_no = #{teacherNo} and t.del_flag = '0' limit 1
+	</select>
+
+	<insert id="insertTeacher" parameterType="com.ruoyi.system.domain.teacher.TeaTeacher" useGeneratedKeys="true" keyProperty="teacherId">
+		insert into tea_teacher(
+			<if test="teacherNo != null and teacherNo != ''">teacher_no,</if>
+			<if test="teacherName != null and teacherName != ''">teacher_name,</if>
+			<if test="gender != null and gender != ''">gender,</if>
+			<if test="birthDate != null">birth_date,</if>
+			<if test="idCard != null and idCard != ''">id_card,</if>
+			<if test="nation != null and nation != ''">nation,</if>
+			<if test="politicalStatus != null and politicalStatus != ''">political_status,</if>
+			<if test="phone != null and phone != ''">phone,</if>
+			<if test="email != null and email != ''">email,</if>
+			<if test="officeAddress != null and officeAddress != ''">office_address,</if>
+			<if test="emergencyContact != null and emergencyContact != ''">emergency_contact,</if>
+			<if test="emergencyPhone != null and emergencyPhone != ''">emergency_phone,</if>
+			<if test="avatar != null and avatar != ''">avatar,</if>
+			<if test="deptId != null">dept_id,</if>
+			<if test="status != null and status != ''">status,</if>
+			<if test="remark != null and remark != ''">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="teacherNo != null and teacherNo != ''">#{teacherNo},</if>
+			<if test="teacherName != null and teacherName != ''">#{teacherName},</if>
+			<if test="gender != null and gender != ''">#{gender},</if>
+			<if test="birthDate != null">#{birthDate},</if>
+			<if test="idCard != null and idCard != ''">#{idCard},</if>
+			<if test="nation != null and nation != ''">#{nation},</if>
+			<if test="politicalStatus != null and politicalStatus != ''">#{politicalStatus},</if>
+			<if test="phone != null and phone != ''">#{phone},</if>
+			<if test="email != null and email != ''">#{email},</if>
+			<if test="officeAddress != null and officeAddress != ''">#{officeAddress},</if>
+			<if test="emergencyContact != null and emergencyContact != ''">#{emergencyContact},</if>
+			<if test="emergencyPhone != null and emergencyPhone != ''">#{emergencyPhone},</if>
+			<if test="avatar != null and avatar != ''">#{avatar},</if>
+			<if test="deptId != null">#{deptId},</if>
+			<if test="status != null and status != ''">#{status},</if>
+			<if test="remark != null and remark != ''">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateTeacher" parameterType="com.ruoyi.system.domain.teacher.TeaTeacher">
+		update tea_teacher
+		<set>
+			<if test="teacherNo != null and teacherNo != ''">teacher_no = #{teacherNo},</if>
+			<if test="teacherName != null and teacherName != ''">teacher_name = #{teacherName},</if>
+			<if test="gender != null and gender != ''">gender = #{gender},</if>
+			<if test="birthDate != null">birth_date = #{birthDate},</if>
+			<if test="idCard != null">id_card = #{idCard},</if>
+			<if test="nation != null">nation = #{nation},</if>
+			<if test="politicalStatus != null">political_status = #{politicalStatus},</if>
+			<if test="phone != null">phone = #{phone},</if>
+			<if test="email != null">email = #{email},</if>
+			<if test="officeAddress != null">office_address = #{officeAddress},</if>
+			<if test="emergencyContact != null">emergency_contact = #{emergencyContact},</if>
+			<if test="emergencyPhone != null">emergency_phone = #{emergencyPhone},</if>
+			<if test="avatar != null">avatar = #{avatar},</if>
+			<if test="deptId != null">dept_id = #{deptId},</if>
+			<if test="status != null and status != ''">status = #{status},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where teacher_id = #{teacherId}
+	</update>
+
+	<update id="deleteTeacherById" parameterType="Long">
+		update tea_teacher set del_flag = '2' where teacher_id = #{teacherId}
+	</update>
+
+	<update id="deleteTeacherByIds" parameterType="Long">
+		update tea_teacher set del_flag = '2' where teacher_id in
+		<foreach collection="array" item="teacherId" open="(" separator="," close=")">
+			#{teacherId}
+		</foreach>
+	</update>
+
+	<select id="selectActiveTeachersWithTitle" resultMap="TeaTeacherResult">
+		select t.teacher_id, t.teacher_no, t.teacher_name, t.dept_id,
+			tr.title_name as current_title, d.dept_name
+		from tea_teacher t
+		left join sys_dept d on d.dept_id = t.dept_id
+		left join tea_title_record tr on tr.teacher_id = t.teacher_id and tr.is_current = '1'
+		where t.del_flag = '0' and t.status = '0'
+	</select>
+
+</mapper>

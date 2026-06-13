@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.teacher.TeaSalaryAdjustMapper">
+
+	<resultMap type="com.ruoyi.system.domain.teacher.TeaSalaryAdjust" id="TeaSalaryAdjustResult">
+		<id     property="adjustId"      column="adjust_id"      />
+		<result property="teacherId"     column="teacher_id"     />
+		<result property="adjustReason"  column="adjust_reason"  />
+		<result property="beforeAmount"  column="before_amount"  />
+		<result property="afterAmount"   column="after_amount"   />
+		<result property="effectiveMonth" column="effective_month" />
+		<result property="createBy"      column="create_by"      />
+		<result property="createTime"    column="create_time"    />
+	</resultMap>
+
+	<select id="selectAdjustByTeacherId" parameterType="Long" resultMap="TeaSalaryAdjustResult">
+		select adjust_id, teacher_id, adjust_reason, before_amount, after_amount,
+			effective_month, create_by, create_time
+		from tea_salary_adjust
+		where teacher_id = #{teacherId}
+		order by effective_month desc
+	</select>
+
+	<insert id="insertAdjust" parameterType="com.ruoyi.system.domain.teacher.TeaSalaryAdjust" useGeneratedKeys="true" keyProperty="adjustId">
+		insert into tea_salary_adjust(
+			teacher_id, adjust_reason, before_amount, after_amount, effective_month,
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			#{teacherId}, #{adjustReason}, #{beforeAmount}, #{afterAmount}, #{effectiveMonth},
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+</mapper>
