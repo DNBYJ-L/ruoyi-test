@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.training.TeaTrainingPlanMapper">
+	<resultMap type="com.ruoyi.system.domain.training.TeaTrainingPlan" id="Result">
+		<id property="planId" column="plan_id"/>
+		<result property="planName" column="plan_name"/>
+		<result property="trainingType" column="training_type"/>
+		<result property="targetAudience" column="target_audience"/>
+		<result property="maxCount" column="max_count"/>
+		<result property="startDate" column="start_date"/>
+		<result property="endDate" column="end_date"/>
+		<result property="totalHours" column="total_hours"/>
+		<result property="location" column="location"/>
+		<result property="instructorName" column="instructor_name"/>
+		<result property="instructorTitle" column="instructor_title"/>
+		<result property="budget" column="budget"/>
+		<result property="status" column="status"/>
+		<result property="syllabus" column="syllabus"/>
+		<result property="createBy" column="create_by"/>
+		<result property="createTime" column="create_time"/>
+		<result property="updateBy" column="update_by"/>
+		<result property="updateTime" column="update_time"/>
+		<result property="remark" column="remark"/>
+	</resultMap>
+	<select id="selectTrainingPlanList" parameterType="com.ruoyi.system.domain.training.TeaTrainingPlan" resultMap="Result">
+		select plan_id, plan_name, training_type, target_audience, max_count, start_date, end_date, total_hours, location, instructor_name, budget, status, create_by, create_time from tea_training_plan
+		<where>
+			<if test="planName != null and planName != ''">AND plan_name like concat('%', #{planName}, '%')</if>
+			<if test="trainingType != null and trainingType != ''">AND training_type = #{trainingType}</if>
+			<if test="status != null and status != ''">AND status = #{status}</if>
+		</where>
+		order by plan_id desc
+	</select>
+	<select id="selectTrainingPlanById" parameterType="Long" resultMap="Result">
+		select * from tea_training_plan where plan_id = #{planId}
+	</select>
+	<insert id="insertTrainingPlan" parameterType="com.ruoyi.system.domain.training.TeaTrainingPlan" useGeneratedKeys="true" keyProperty="planId">
+		insert into tea_training_plan(
+			<if test="planName != null and planName != ''">plan_name,</if>
+			<if test="trainingType != null and trainingType != ''">training_type,</if>
+			<if test="targetAudience != null and targetAudience != ''">target_audience,</if>
+			<if test="maxCount != null">max_count,</if>
+			<if test="startDate != null">start_date,</if>
+			<if test="endDate != null">end_date,</if>
+			<if test="totalHours != null">total_hours,</if>
+			<if test="location != null and location != ''">location,</if>
+			<if test="instructorName != null and instructorName != ''">instructor_name,</if>
+			<if test="instructorTitle != null and instructorTitle != ''">instructor_title,</if>
+			<if test="budget != null">budget,</if>
+			<if test="status != null and status != ''">status,</if>
+			<if test="syllabus != null">syllabus,</if>
+			<if test="remark != null">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="planName != null and planName != ''">#{planName},</if>
+			<if test="trainingType != null and trainingType != ''">#{trainingType},</if>
+			<if test="targetAudience != null and targetAudience != ''">#{targetAudience},</if>
+			<if test="maxCount != null">#{maxCount},</if>
+			<if test="startDate != null">#{startDate},</if>
+			<if test="endDate != null">#{endDate},</if>
+			<if test="totalHours != null">#{totalHours},</if>
+			<if test="location != null and location != ''">#{location},</if>
+			<if test="instructorName != null and instructorName != ''">#{instructorName},</if>
+			<if test="instructorTitle != null and instructorTitle != ''">#{instructorTitle},</if>
+			<if test="budget != null">#{budget},</if>
+			<if test="status != null and status != ''">#{status},</if>
+			<if test="syllabus != null">#{syllabus},</if>
+			<if test="remark != null">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+	<update id="updateTrainingPlan" parameterType="com.ruoyi.system.domain.training.TeaTrainingPlan">
+		update tea_training_plan
+		<set>
+			<if test="planName != null">plan_name = #{planName},</if>
+			<if test="trainingType != null">training_type = #{trainingType},</if>
+			<if test="targetAudience != null">target_audience = #{targetAudience},</if>
+			<if test="maxCount != null">max_count = #{maxCount},</if>
+			<if test="startDate != null">start_date = #{startDate},</if>
+			<if test="endDate != null">end_date = #{endDate},</if>
+			<if test="totalHours != null">total_hours = #{totalHours},</if>
+			<if test="location != null">location = #{location},</if>
+			<if test="instructorName != null">instructor_name = #{instructorName},</if>
+			<if test="instructorTitle != null">instructor_title = #{instructorTitle},</if>
+			<if test="budget != null">budget = #{budget},</if>
+			<if test="status != null and status != ''">status = #{status},</if>
+			<if test="syllabus != null">syllabus = #{syllabus},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where plan_id = #{planId}
+	</update>
+	<delete id="deleteTrainingPlanByIds" parameterType="Long">
+		delete from tea_training_plan where plan_id in
+		<foreach collection="array" item="planId" open="(" separator="," close=")">#{planId}</foreach>
+	</delete>
+</mapper>

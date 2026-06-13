@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.recruit.TeaApplicantEducationMapper">
+
+	<resultMap type="com.ruoyi.system.domain.recruit.TeaApplicantEducation" id="Result">
+		<id     property="educationId"  column="education_id"  />
+		<result property="applicantId"  column="applicant_id"  />
+		<result property="school"       column="school"        />
+		<result property="major"        column="major"         />
+		<result property="degree"       column="degree"        />
+		<result property="startDate"    column="start_date"    />
+		<result property="endDate"      column="end_date"      />
+		<result property="advisor"      column="advisor"       />
+		<result property="thesis"       column="thesis"        />
+	</resultMap>
+
+	<select id="selectEducationByApplicantId" parameterType="Long" resultMap="Result">
+		select education_id, applicant_id, school, major, degree, start_date, end_date, advisor, thesis
+		from tea_applicant_education where applicant_id = #{applicantId} order by start_date asc
+	</select>
+
+	<insert id="insertApplicantEducation" parameterType="com.ruoyi.system.domain.recruit.TeaApplicantEducation" useGeneratedKeys="true" keyProperty="educationId">
+		insert into tea_applicant_education(
+			applicant_id,
+			<if test="school != null and school != ''">school,</if>
+			<if test="major != null and major != ''">major,</if>
+			<if test="degree != null and degree != ''">degree,</if>
+			<if test="startDate != null">start_date,</if>
+			<if test="endDate != null">end_date,</if>
+			<if test="advisor != null and advisor != ''">advisor,</if>
+			<if test="thesis != null and thesis != ''">thesis,</if>
+			education_id
+		)values(
+			#{applicantId},
+			<if test="school != null and school != ''">#{school},</if>
+			<if test="major != null and major != ''">#{major},</if>
+			<if test="degree != null and degree != ''">#{degree},</if>
+			<if test="startDate != null">#{startDate},</if>
+			<if test="endDate != null">#{endDate},</if>
+			<if test="advisor != null and advisor != ''">#{advisor},</if>
+			<if test="thesis != null and thesis != ''">#{thesis},</if>
+			0
+		)
+	</insert>
+
+	<delete id="deleteEducationByApplicantId" parameterType="Long">
+		delete from tea_applicant_education where applicant_id = #{applicantId}
+	</delete>
+</mapper>

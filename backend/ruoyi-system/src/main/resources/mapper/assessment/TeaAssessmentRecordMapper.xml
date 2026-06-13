@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.assessment.TeaAssessmentRecordMapper">
+	<resultMap type="com.ruoyi.system.domain.assessment.TeaAssessmentRecord" id="Result">
+		<id property="recordId" column="record_id"/>
+		<result property="planId" column="plan_id"/>
+		<result property="teacherId" column="teacher_id"/>
+		<result property="status" column="status"/>
+		<result property="teachingScore" column="teaching_score"/>
+		<result property="researchScore" column="research_score"/>
+		<result property="serviceScore" column="service_score"/>
+		<result property="totalScore" column="total_score"/>
+		<result property="grade" column="grade"/>
+		<result property="selfEvaluation" column="self_evaluation"/>
+		<result property="deptEvaluation" column="dept_evaluation"/>
+		<result property="submitTime" column="submit_time"/>
+		<result property="createBy" column="create_by"/>
+		<result property="createTime" column="create_time"/>
+		<result property="updateBy" column="update_by"/>
+		<result property="updateTime" column="update_time"/>
+		<result property="teacherName" column="teacher_name"/>
+		<result property="teacherNo" column="teacher_no"/>
+		<result property="deptName" column="dept_name"/>
+		<result property="planName" column="plan_name"/>
+	</resultMap>
+	<sql id="selectVo">
+		select r.record_id, r.plan_id, r.teacher_id, r.status, r.teaching_score, r.research_score,
+			r.service_score, r.total_score, r.grade, r.self_evaluation, r.dept_evaluation,
+			r.submit_time, r.create_by, r.create_time, r.update_by, r.update_time,
+			t.teacher_name, t.teacher_no, d.dept_name, p.plan_name
+		from tea_assessment_record r
+		left join tea_teacher t on t.teacher_id = r.teacher_id
+		left join sys_dept d on d.dept_id = t.dept_id
+		left join tea_assessment_plan p on p.plan_id = r.plan_id
+	</sql>
+	<select id="selectAssessmentRecordList" parameterType="com.ruoyi.system.domain.assessment.TeaAssessmentRecord" resultMap="Result">
+		<include refid="selectVo"/>
+		<where>
+			<if test="planId != null">AND r.plan_id = #{planId}</if>
+			<if test="teacherId != null">AND r.teacher_id = #{teacherId}</if>
+			<if test="status != null and status != ''">AND r.status = #{status}</if>
+			<if test="grade != null and grade != ''">AND r.grade = #{grade}</if>
+		</where>
+		order by r.record_id desc
+	</select>
+	<select id="selectAssessmentRecordById" parameterType="Long" resultMap="Result">
+		<include refid="selectVo"/> where r.record_id = #{recordId}
+	</select>
+	<insert id="insertAssessmentRecord" parameterType="com.ruoyi.system.domain.assessment.TeaAssessmentRecord" useGeneratedKeys="true" keyProperty="recordId">
+		insert into tea_assessment_record(
+			plan_id, teacher_id, status, teaching_score, research_score, service_score, total_score, grade,
+			<if test="selfEvaluation != null">self_evaluation,</if>
+			<if test="deptEvaluation != null">dept_evaluation,</if>
+			<if test="submitTime != null">submit_time,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			#{planId}, #{teacherId}, #{status}, #{teachingScore}, #{researchScore}, #{serviceScore}, #{totalScore}, #{grade},
+			<if test="selfEvaluation != null">#{selfEvaluation},</if>
+			<if test="deptEvaluation != null">#{deptEvaluation},</if>
+			<if test="submitTime != null">#{submitTime},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+	<update id="updateAssessmentRecord" parameterType="com.ruoyi.system.domain.assessment.TeaAssessmentRecord">
+		update tea_assessment_record
+		<set>
+			<if test="status != null and status != ''">status = #{status},</if>
+			<if test="teachingScore != null">teaching_score = #{teachingScore},</if>
+			<if test="researchScore != null">research_score = #{researchScore},</if>
+			<if test="serviceScore != null">service_score = #{serviceScore},</if>
+			<if test="totalScore != null">total_score = #{totalScore},</if>
+			<if test="grade != null and grade != ''">grade = #{grade},</if>
+			<if test="selfEvaluation != null">self_evaluation = #{selfEvaluation},</if>
+			<if test="deptEvaluation != null">dept_evaluation = #{deptEvaluation},</if>
+			<if test="submitTime != null">submit_time = #{submitTime},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where record_id = #{recordId}
+	</update>
+	<delete id="deleteAssessmentRecordByIds" parameterType="Long">
+		delete from tea_assessment_record where record_id in
+		<foreach collection="array" item="recordId" open="(" separator="," close=")">#{recordId}</foreach>
+	</delete>
+	<select id="selectScoreStat" parameterType="java.util.Map" resultType="java.util.Map">
+		select
+			COALESCE(AVG(r.total_score), 0) as avgScore,
+			COALESCE(AVG(r.teaching_score), 0) as avgTeaching,
+			COALESCE(AVG(r.research_score), 0) as avgResearch,
+			COALESCE(AVG(r.service_score), 0) as avgService,
+			COUNT(*) as totalCount,
+			SUM(CASE WHEN r.grade = '优秀' THEN 1 ELSE 0 END) as excellentCount,
+			SUM(CASE WHEN r.grade = '合格' THEN 1 ELSE 0 END) as passCount,
+			SUM(CASE WHEN r.grade = '基本合格' THEN 1 ELSE 0 END) as basicCount,
+			SUM(CASE WHEN r.grade = '不合格' THEN 1 ELSE 0 END) as failCount,
+			d.dept_name as deptName
+		from tea_assessment_record r
+		left join tea_teacher t on t.teacher_id = r.teacher_id
+		left join sys_dept d on d.dept_id = t.dept_id
+		<where>
+			<if test="planId != null">AND r.plan_id = #{planId}</if>
+		</where>
+		group by d.dept_id, d.dept_name
+	</select>
+</mapper>

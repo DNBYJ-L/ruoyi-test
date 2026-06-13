@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.assessment.TeaAssessmentTeachingMapper">
+	<resultMap type="com.ruoyi.system.domain.assessment.TeaAssessmentTeaching" id="Result">
+		<id property="id" column="id"/>
+		<result property="recordId" column="record_id"/>
+		<result property="courseName" column="course_name"/>
+		<result property="classHours" column="class_hours"/>
+		<result property="studentCount" column="student_count"/>
+		<result property="evalScore" column="eval_score"/>
+		<result property="awards" column="awards"/>
+		<result property="projects" column="projects"/>
+		<result property="guidedStudents" column="guided_students"/>
+	</resultMap>
+	<select id="selectByRecordId" parameterType="Long" resultMap="Result">
+		select * from tea_assessment_teaching where record_id = #{recordId}
+	</select>
+	<insert id="insert" parameterType="com.ruoyi.system.domain.assessment.TeaAssessmentTeaching" useGeneratedKeys="true" keyProperty="id">
+		insert into tea_assessment_teaching(record_id, course_name, class_hours, student_count, eval_score, awards, projects, guided_students)
+		values(#{recordId}, #{courseName}, #{classHours}, #{studentCount}, #{evalScore}, #{awards}, #{projects}, #{guidedStudents})
+	</insert>
+	<delete id="deleteByRecordId" parameterType="Long">
+		delete from tea_assessment_teaching where record_id = #{recordId}
+	</delete>
+</mapper>

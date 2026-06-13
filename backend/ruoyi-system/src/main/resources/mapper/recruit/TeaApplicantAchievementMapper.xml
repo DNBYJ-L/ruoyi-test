@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.recruit.TeaApplicantAchievementMapper">
+
+	<resultMap type="com.ruoyi.system.domain.recruit.TeaApplicantAchievement" id="Result">
+		<id     property="achievementId"   column="achievement_id"   />
+		<result property="applicantId"     column="applicant_id"     />
+		<result property="achievementType" column="achievement_type" />
+		<result property="title"           column="title"            />
+		<result property="detail"          column="detail"           />
+		<result property="level"           column="level"            />
+		<result property="amount"          column="amount"           />
+	</resultMap>
+
+	<select id="selectAchievementByApplicantId" parameterType="Long" resultMap="Result">
+		select achievement_id, applicant_id, achievement_type, title, detail, level, amount
+		from tea_applicant_achievement where applicant_id = #{applicantId} order by achievement_id asc
+	</select>
+
+	<insert id="insertApplicantAchievement" parameterType="com.ruoyi.system.domain.recruit.TeaApplicantAchievement" useGeneratedKeys="true" keyProperty="achievementId">
+		insert into tea_applicant_achievement(
+			applicant_id,
+			<if test="achievementType != null and achievementType != ''">achievement_type,</if>
+			<if test="title != null and title != ''">title,</if>
+			<if test="detail != null and detail != ''">detail,</if>
+			<if test="level != null and level != ''">level,</if>
+			<if test="amount != null">amount,</if>
+			achievement_id
+		)values(
+			#{applicantId},
+			<if test="achievementType != null and achievementType != ''">#{achievementType},</if>
+			<if test="title != null and title != ''">#{title},</if>
+			<if test="detail != null and detail != ''">#{detail},</if>
+			<if test="level != null and level != ''">#{level},</if>
+			<if test="amount != null">#{amount},</if>
+			0
+		)
+	</insert>
+
+	<delete id="deleteAchievementByApplicantId" parameterType="Long">
+		delete from tea_applicant_achievement where applicant_id = #{applicantId}
+	</delete>
+</mapper>

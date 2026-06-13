@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.assessment.TeaAssessmentResearchMapper">
+	<resultMap type="com.ruoyi.system.domain.assessment.TeaAssessmentResearch" id="Result">
+		<id property="id" column="id"/>
+		<result property="recordId" column="record_id"/>
+		<result property="researchType" column="research_type"/>
+		<result property="title" column="title"/>
+		<result property="journalOrSource" column="journal_or_source"/>
+		<result property="level" column="level"/>
+		<result property="amount" column="amount"/>
+		<result property="role" column="role"/>
+		<result property="citations" column="citations"/>
+	</resultMap>
+	<select id="selectByRecordId" parameterType="Long" resultMap="Result">
+		select * from tea_assessment_research where record_id = #{recordId}
+	</select>
+	<insert id="insert" parameterType="com.ruoyi.system.domain.assessment.TeaAssessmentResearch" useGeneratedKeys="true" keyProperty="id">
+		insert into tea_assessment_research(record_id, research_type, title, journal_or_source, level, amount, role, citations)
+		values(#{recordId}, #{researchType}, #{title}, #{journalOrSource}, #{level}, #{amount}, #{role}, #{citations})
+	</insert>
+	<delete id="deleteByRecordId" parameterType="Long">
+		delete from tea_assessment_research where record_id = #{recordId}
+	</delete>
+</mapper>

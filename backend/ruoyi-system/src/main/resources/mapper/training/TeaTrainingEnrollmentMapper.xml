@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.training.TeaTrainingEnrollmentMapper">
+	<resultMap type="com.ruoyi.system.domain.training.TeaTrainingEnrollment" id="Result">
+		<id property="enrollmentId" column="enrollment_id"/>
+		<result property="planId" column="plan_id"/>
+		<result property="teacherId" column="teacher_id"/>
+		<result property="applyDate" column="apply_date"/>
+		<result property="approveStatus" column="approve_status"/>
+		<result property="approveBy" column="approve_by"/>
+		<result property="approveTime" column="approve_time"/>
+		<result property="approveRemark" column="approve_remark"/>
+		<result property="createBy" column="create_by"/>
+		<result property="createTime" column="create_time"/>
+		<result property="planName" column="plan_name"/>
+		<result property="teacherName" column="teacher_name"/>
+		<result property="deptName" column="dept_name"/>
+	</resultMap>
+	<sql id="selectVo">
+		select e.enrollment_id, e.plan_id, e.teacher_id, e.apply_date, e.approve_status,
+			e.approve_by, e.approve_time, e.approve_remark, e.create_by, e.create_time,
+			p.plan_name, t.teacher_name, d.dept_name
+		from tea_training_enrollment e
+		left join tea_training_plan p on p.plan_id = e.plan_id
+		left join tea_teacher t on t.teacher_id = e.teacher_id
+		left join sys_dept d on d.dept_id = t.dept_id
+	</sql>
+	<select id="selectEnrollmentList" parameterType="com.ruoyi.system.domain.training.TeaTrainingEnrollment" resultMap="Result">
+		<include refid="selectVo"/>
+		<where>
+			<if test="planId != null">AND e.plan_id = #{planId}</if>
+			<if test="teacherId != null">AND e.teacher_id = #{teacherId}</if>
+			<if test="approveStatus != null and approveStatus != ''">AND e.approve_status = #{approveStatus}</if>
+		</where>
+		order by e.enrollment_id desc
+	</select>
+	<select id="selectEnrollmentById" parameterType="Long" resultMap="Result">
+		<include refid="selectVo"/> where e.enrollment_id = #{enrollmentId}
+	</select>
+	<insert id="insertEnrollment" parameterType="com.ruoyi.system.domain.training.TeaTrainingEnrollment" useGeneratedKeys="true" keyProperty="enrollmentId">
+		insert into tea_training_enrollment(plan_id, teacher_id, apply_date, approve_status,
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(#{planId}, #{teacherId}, #{applyDate}, #{approveStatus},
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+	<update id="updateEnrollment" parameterType="com.ruoyi.system.domain.training.TeaTrainingEnrollment">
+		update tea_training_enrollment
+		<set>
+			<if test="approveStatus != null and approveStatus != ''">approve_status = #{approveStatus},</if>
+			<if test="approveBy != null and approveBy != ''">approve_by = #{approveBy},</if>
+			<if test="approveTime != null">approve_time = #{approveTime},</if>
+			<if test="approveRemark != null">approve_remark = #{approveRemark},</if>
+		</set>
+		where enrollment_id = #{enrollmentId}
+	</update>
+</mapper>

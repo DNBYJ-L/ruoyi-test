@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.training.TeaTrainingResultMapper">
+	<resultMap type="com.ruoyi.system.domain.training.TeaTrainingResult" id="Result">
+		<id property="resultId" column="result_id"/>
+		<result property="planId" column="plan_id"/>
+		<result property="teacherId" column="teacher_id"/>
+		<result property="examScore" column="exam_score"/>
+		<result property="assessmentType" column="assessment_type"/>
+		<result property="passStatus" column="pass_status"/>
+		<result property="certificateNo" column="certificate_no"/>
+		<result property="creditHours" column="credit_hours"/>
+		<result property="satisfactionScore" column="satisfaction_score"/>
+		<result property="remark" column="remark"/>
+		<result property="createBy" column="create_by"/>
+		<result property="createTime" column="create_time"/>
+		<result property="updateBy" column="update_by"/>
+		<result property="updateTime" column="update_time"/>
+		<result property="planName" column="plan_name"/>
+		<result property="teacherName" column="teacher_name"/>
+	</resultMap>
+	<sql id="selectVo">
+		select r.result_id, r.plan_id, r.teacher_id, r.exam_score, r.assessment_type, r.pass_status,
+			r.certificate_no, r.credit_hours, r.satisfaction_score, r.remark,
+			r.create_by, r.create_time, r.update_by, r.update_time,
+			p.plan_name, t.teacher_name
+		from tea_training_result r
+		left join tea_training_plan p on p.plan_id = r.plan_id
+		left join tea_teacher t on t.teacher_id = r.teacher_id
+	</sql>
+	<select id="selectTrainingResultList" parameterType="com.ruoyi.system.domain.training.TeaTrainingResult" resultMap="Result">
+		<include refid="selectVo"/>
+		<where>
+			<if test="planId != null">AND r.plan_id = #{planId}</if>
+			<if test="teacherId != null">AND r.teacher_id = #{teacherId}</if>
+			<if test="passStatus != null and passStatus != ''">AND r.pass_status = #{passStatus}</if>
+		</where>
+		order by r.result_id desc
+	</select>
+	<select id="selectTrainingResultById" parameterType="Long" resultMap="Result">
+		<include refid="selectVo"/> where r.result_id = #{resultId}
+	</select>
+	<insert id="insertTrainingResult" parameterType="com.ruoyi.system.domain.training.TeaTrainingResult" useGeneratedKeys="true" keyProperty="resultId">
+		insert into tea_training_result(plan_id, teacher_id, exam_score, assessment_type, pass_status, certificate_no, credit_hours, satisfaction_score,
+			<if test="remark != null">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(#{planId}, #{teacherId}, #{examScore}, #{assessmentType}, #{passStatus}, #{certificateNo}, #{creditHours}, #{satisfactionScore},
+			<if test="remark != null">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+	<update id="updateTrainingResult" parameterType="com.ruoyi.system.domain.training.TeaTrainingResult">
+		update tea_training_result
+		<set>
+			<if test="examScore != null">exam_score = #{examScore},</if>
+			<if test="assessmentType != null">assessment_type = #{assessmentType},</if>
+			<if test="passStatus != null and passStatus != ''">pass_status = #{passStatus},</if>
+			<if test="certificateNo != null">certificate_no = #{certificateNo},</if>
+			<if test="creditHours != null">credit_hours = #{creditHours},</if>
+			<if test="satisfactionScore != null">satisfaction_score = #{satisfactionScore},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where result_id = #{resultId}
+	</update>
+	<select id="selectHoursStat" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.teacher_id as teacherId, t.teacher_name as teacherName, d.dept_name as deptName,
+			COALESCE(SUM(r.credit_hours), 0) as totalHours
+		from tea_training_result r
+		left join tea_teacher t on t.teacher_id = r.teacher_id
+		left join sys_dept d on d.dept_id = t.dept_id
+		where r.pass_status = '1'
+		<if test="teacherId != null">AND r.teacher_id = #{teacherId}</if>
+		group by t.teacher_id, t.teacher_name, d.dept_name
+		order by totalHours desc
+	</select>
+</mapper>

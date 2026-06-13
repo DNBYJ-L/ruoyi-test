@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.assessment.TeaAssessmentAuditMapper">
+	<resultMap type="com.ruoyi.system.domain.assessment.TeaAssessmentAudit" id="Result">
+		<id property="auditId" column="audit_id"/>
+		<result property="recordId" column="record_id"/>
+		<result property="auditNode" column="audit_node"/>
+		<result property="auditorId" column="auditor_id"/>
+		<result property="auditorName" column="auditor_name"/>
+		<result property="auditTime" column="audit_time"/>
+		<result property="result" column="result"/>
+		<result property="opinion" column="opinion"/>
+	</resultMap>
+	<select id="selectByRecordId" parameterType="Long" resultMap="Result">
+		select * from tea_assessment_audit where record_id = #{recordId} order by audit_time asc
+	</select>
+	<insert id="insert" parameterType="com.ruoyi.system.domain.assessment.TeaAssessmentAudit" useGeneratedKeys="true" keyProperty="auditId">
+		insert into tea_assessment_audit(record_id, audit_node, auditor_id, auditor_name, audit_time, result, opinion)
+		values(#{recordId}, #{auditNode}, #{auditorId}, #{auditorName}, #{auditTime}, #{result}, #{opinion})
+	</insert>
+</mapper>

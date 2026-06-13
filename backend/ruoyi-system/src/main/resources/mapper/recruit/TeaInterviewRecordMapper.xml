@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.recruit.TeaInterviewRecordMapper">
+
+	<resultMap type="com.ruoyi.system.domain.recruit.TeaInterviewRecord" id="Result">
+		<id     property="interviewId"     column="interview_id"     />
+		<result property="applicantId"     column="applicant_id"     />
+		<result property="interviewType"   column="interview_type"   />
+		<result property="interviewDate"   column="interview_date"   />
+		<result property="teachingScore"   column="teaching_score"   />
+		<result property="academicScore"   column="academic_score"   />
+		<result property="defenseScore"    column="defense_score"    />
+		<result property="totalScore"      column="total_score"      />
+		<result property="opinion"         column="opinion"          />
+		<result property="result"          column="result"           />
+		<result property="createBy"        column="create_by"        />
+		<result property="createTime"      column="create_time"      />
+		<result property="updateBy"        column="update_by"        />
+		<result property="updateTime"      column="update_time"      />
+		<result property="applicantName"   column="applicant_name"   />
+		<result property="applicantTalentLevel" column="talent_level"/>
+	</resultMap>
+
+	<sql id="selectInterviewVo">
+		select i.interview_id, i.applicant_id, i.interview_type, i.interview_date,
+			i.teaching_score, i.academic_score, i.defense_score, i.total_score,
+			i.opinion, i.result, i.create_by, i.create_time, i.update_by, i.update_time,
+			a.name as applicant_name, a.talent_level
+		from tea_interview_record i
+		left join tea_applicant a on a.applicant_id = i.applicant_id
+	</sql>
+
+	<select id="selectInterviewRecordList" parameterType="com.ruoyi.system.domain.recruit.TeaInterviewRecord" resultMap="Result">
+		<include refid="selectInterviewVo"/>
+		<where>
+			<if test="applicantId != null">AND i.applicant_id = #{applicantId}</if>
+			<if test="result != null and result != ''">AND i.result = #{result}</if>
+			<if test="interviewType != null and interviewType != ''">AND i.interview_type like concat('%', #{interviewType}, '%')</if>
+		</where>
+		order by i.interview_date desc
+	</select>
+
+	<select id="selectInterviewRecordById" parameterType="Long" resultMap="Result">
+		<include refid="selectInterviewVo"/>
+		where i.interview_id = #{interviewId}
+	</select>
+
+	<insert id="insertInterviewRecord" parameterType="com.ruoyi.system.domain.recruit.TeaInterviewRecord" useGeneratedKeys="true" keyProperty="interviewId">
+		insert into tea_interview_record(
+			applicant_id, interview_type, interview_date,
+			teaching_score, academic_score, defense_score, total_score,
+			opinion, result,
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			#{applicantId}, #{interviewType}, #{interviewDate},
+			#{teachingScore}, #{academicScore}, #{defenseScore}, #{totalScore},
+			#{opinion}, #{result},
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateInterviewRecord" parameterType="com.ruoyi.system.domain.recruit.TeaInterviewRecord">
+		update tea_interview_record
+		<set>
+			<if test="interviewType != null">interview_type = #{interviewType},</if>
+			<if test="interviewDate != null">interview_date = #{interviewDate},</if>
+			<if test="teachingScore != null">teaching_score = #{teachingScore},</if>
+			<if test="academicScore != null">academic_score = #{academicScore},</if>
+			<if test="defenseScore != null">defense_score = #{defenseScore},</if>
+			<if test="totalScore != null">total_score = #{totalScore},</if>
+			<if test="opinion != null">opinion = #{opinion},</if>
+			<if test="result != null and result != ''">result = #{result},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where interview_id = #{interviewId}
+	</update>
+
+	<delete id="deleteInterviewRecordByIds" parameterType="Long">
+		delete from tea_interview_record where interview_id in
+		<foreach collection="array" item="interviewId" open="(" separator="," close=")">#{interviewId}</foreach>
+	</delete>
+</mapper>
