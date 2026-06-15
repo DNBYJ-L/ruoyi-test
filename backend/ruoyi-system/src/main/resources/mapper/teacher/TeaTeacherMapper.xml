@@ -20,6 +20,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		<result property="emergencyPhone"  column="emergency_phone"  />
 		<result property="avatar"          column="avatar"           />
 		<result property="deptId"          column="dept_id"          />
+		<result property="userId"          column="user_id"          />
 		<result property="status"          column="status"           />
 		<result property="delFlag"         column="del_flag"         />
 		<result property="createBy"        column="create_by"        />
@@ -29,16 +30,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		<result property="remark"          column="remark"           />
 		<result property="deptName"        column="dept_name"        />
 		<result property="currentTitle"    column="current_title"    />
+		<result property="loginName"        column="login_name"       />
 	</resultMap>
 
 	<sql id="selectTeacherVo">
 		select t.teacher_id, t.teacher_no, t.teacher_name, t.gender, t.birth_date, t.id_card,
 			t.nation, t.political_status, t.phone, t.email, t.office_address,
-			t.emergency_contact, t.emergency_phone, t.avatar, t.dept_id, t.status,
+			t.emergency_contact, t.emergency_phone, t.avatar, t.dept_id, t.user_id, t.status,
 			t.del_flag, t.create_by, t.create_time, t.update_by, t.update_time, t.remark,
-			d.dept_name
+			d.dept_name, su.user_name as login_name
 		from tea_teacher t
 		left join sys_dept d on d.dept_id = t.dept_id
+		left join sys_user su on su.user_id = t.user_id
     </sql>
 
 	<select id="selectTeacherList" parameterType="com.ruoyi.system.domain.teacher.TeaTeacher" resultMap="TeaTeacherResult">
@@ -74,6 +77,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		where t.teacher_no = #{teacherNo} and t.del_flag = '0' limit 1
 	</select>
 
+	<select id="selectTeacherByUserId" parameterType="Long" resultMap="TeaTeacherResult">
+		<include refid="selectTeacherVo"/>
+		where t.user_id = #{userId} and t.del_flag = '0' limit 1
+	</select>
+
 	<insert id="insertTeacher" parameterType="com.ruoyi.system.domain.teacher.TeaTeacher" useGeneratedKeys="true" keyProperty="teacherId">
 		insert into tea_teacher(
 			<if test="teacherNo != null and teacherNo != ''">teacher_no,</if>
@@ -90,6 +98,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="emergencyPhone != null and emergencyPhone != ''">emergency_phone,</if>
 			<if test="avatar != null and avatar != ''">avatar,</if>
 			<if test="deptId != null">dept_id,</if>
+			<if test="userId != null">user_id,</if>
 			<if test="status != null and status != ''">status,</if>
 			<if test="remark != null and remark != ''">remark,</if>
 			<if test="createBy != null and createBy != ''">create_by,</if>
@@ -109,6 +118,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="emergencyPhone != null and emergencyPhone != ''">#{emergencyPhone},</if>
 			<if test="avatar != null and avatar != ''">#{avatar},</if>
 			<if test="deptId != null">#{deptId},</if>
+			<if test="userId != null">#{userId},</if>
 			<if test="status != null and status != ''">#{status},</if>
 			<if test="remark != null and remark != ''">#{remark},</if>
 			<if test="createBy != null and createBy != ''">#{createBy},</if>
@@ -133,6 +143,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="emergencyPhone != null">emergency_phone = #{emergencyPhone},</if>
 			<if test="avatar != null">avatar = #{avatar},</if>
 			<if test="deptId != null">dept_id = #{deptId},</if>
+			<if test="userId != null">user_id = #{userId},</if>
 			<if test="status != null and status != ''">status = #{status},</if>
 			<if test="remark != null">remark = #{remark},</if>
 			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
@@ -150,6 +161,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		<foreach collection="array" item="teacherId" open="(" separator="," close=")">
 			#{teacherId}
 		</foreach>
+	</update>
+
+	<update id="clearTeacherUserId" parameterType="Long">
+		update tea_teacher set user_id = null where teacher_id = #{teacherId}
 	</update>
 
 	<select id="selectActiveTeachersWithTitle" resultMap="TeaTeacherResult">

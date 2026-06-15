@@ -45,6 +45,12 @@
       <el-table-column label="状态" prop="status" width="80" align="center">
         <template #default="scope"><dict-tag :options="tea_teacher_status" :value="scope.row.status" /></template>
       </el-table-column>
+      <el-table-column label="关联账号" prop="loginName" width="110" align="center">
+        <template #default="scope">
+          <el-tag v-if="scope.row.loginName" type="success" size="small">{{ scope.row.loginName }}</el-tag>
+          <el-tag v-else type="info" size="small">未关联</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['teacher:info:edit']">编辑</el-button>
@@ -79,6 +85,24 @@
           <el-col :span="12"><el-form-item label="所属院系" prop="deptId"><el-tree-select v-model="form.deptId" :data="deptOptions" :props="{ value: 'id', label: 'label', children: 'children' }" value-key="id" placeholder="请选择" check-strictly style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="办公地址" prop="officeAddress"><el-input v-model="form.officeAddress" placeholder="请输入办公地址" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="状态" prop="status"><el-select v-model="form.status" placeholder="请选择"><el-option v-for="dict in tea_teacher_status" :key="dict.value" :label="dict.label" :value="dict.value" /></el-select></el-form-item></el-col>
+          <el-col :span="12">
+            <el-form-item label="关联账号">
+              <div style="width: 100%">
+                <el-input
+                  :model-value="form.userId ? (selectedUserDisplay || '') : ''"
+                  placeholder="点击选择关联账号"
+                  readonly
+                  @click="openUserPicker"
+                >
+                  <template #prefix><el-icon><User /></el-icon></template>
+                  <template #suffix>
+                    <el-icon v-if="form.userId" style="cursor:pointer" @click.stop="onClearUser"><CircleClose /></el-icon>
+                  </template>
+                </el-input>
+                <div v-if="form.loginName && !form.userId && !userCleared" style="color: #999; font-size: 12px; margin-top: 2px">当前关联: {{ form.loginName }}</div>
+              </div>
+            </el-form-item>
+          </el-col>
           <el-col :span="12"><el-form-item label="紧急联系人"><el-input v-model="form.emergencyContact" placeholder="请输入" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="紧急电话"><el-input v-model="form.emergencyPhone" placeholder="请输入" /></el-form-item></el-col>
         </el-row>
@@ -132,12 +156,37 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 关联账号选择弹窗 -->
+    <el-dialog title="选择关联账号" v-model="userPickerOpen" width="500px" append-to-body destroy-on-close>
+      <el-input v-model="userSearchKey" placeholder="输入用户名或昵称模糊搜索" clearable @input="doSearchUsers" style="margin-bottom: 12px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+      <div v-loading="userSearchLoading" style="max-height: 320px; overflow-y: auto; border: 1px solid #ebeef5; border-radius: 4px; padding: 8px">
+        <div v-if="userSearchList.length === 0 && !userSearchLoading" style="text-align: center; color: #999; padding: 30px 0">暂无数据，请输入关键词搜索</div>
+        <el-checkbox-group v-model="userPickerChecked">
+          <div v-for="u in userSearchList" :key="u.userId" style="padding: 6px 0; border-bottom: 1px solid #f5f5f5">
+            <el-checkbox :label="u.userId" @change="onCheckUser(u)">
+              <span>{{ u.userName }}</span>
+              <span style="color: #999; margin-left: 8px">{{ u.nickName }}</span>
+              <span v-if="u.phonenumber" style="color: #bbb; margin-left: 8px; font-size: 12px">{{ u.phonenumber }}</span>
+            </el-checkbox>
+          </div>
+        </el-checkbox-group>
+      </div>
+      <template #footer>
+        <el-button type="danger" plain @click="clearUserLink">清除关联</el-button>
+        <el-button @click="userPickerOpen = false">取 消</el-button>
+        <el-button type="primary" @click="confirmUserPicker">确 定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="TeacherInfo">
 import { listTeacher, getTeacher, addTeacher, updateTeacher, delTeacher, checkTeacherNo, exportTeacher } from '@/api/teacher/info'
 import { listDept } from '@/api/system/dept'
+import { listUser } from '@/api/system/user'
 
 const { proxy } = getCurrentInstance()
 const { sys_user_sex } = proxy.useDict('sys_user_sex')
@@ -160,6 +209,15 @@ const open = ref(false)
 const activeStep = ref(0)
 const noChecked = ref(null)
 const deptOptions = ref([])
+const userSearchLoading = ref(false)
+const userOptions = ref([])
+const userCleared = ref(false)
+const userPickerOpen = ref(false)
+const userSearchKey = ref('')
+const userSearchList = ref([])
+const userPickerChecked = ref([])
+const selectedUserDisplay = ref('')
+const tempPickedUser = ref(null)
 
 const data = reactive({
   form: {},
@@ -198,9 +256,13 @@ function getDeptTree() {
 }
 
 function reset() {
-  form.value = { teacherId: undefined, teacherNo: undefined, teacherName: undefined, gender: '0', birthDate: undefined, idCard: undefined, nation: undefined, politicalStatus: undefined, phone: undefined, email: undefined, officeAddress: undefined, emergencyContact: undefined, emergencyPhone: undefined, deptId: undefined, status: '0', remark: undefined, educations: [], titleRecords: [], disciplines: [] }
+  form.value = { teacherId: undefined, teacherNo: undefined, teacherName: undefined, gender: '0', birthDate: undefined, idCard: undefined, nation: undefined, politicalStatus: undefined, phone: undefined, email: undefined, officeAddress: undefined, emergencyContact: undefined, emergencyPhone: undefined, deptId: undefined, userId: undefined, status: '0', remark: undefined, educations: [], titleRecords: [], disciplines: [] }
   activeStep.value = 0
   noChecked.value = null
+  userCleared.value = false
+  userOptions.value = []
+  selectedUserDisplay.value = ''
+  tempPickedUser.value = null
   proxy.resetForm('basicFormRef')
 }
 
@@ -208,12 +270,30 @@ function handleAdd() { reset(); title.value = '新增教师'; open.value = true 
 function handleUpdate(row) {
   reset()
   const teacherId = row.teacherId || ids.value[0]
-  getTeacher(teacherId).then(response => { form.value = response.data; form.value.educations = form.value.educations || []; form.value.titleRecords = form.value.titleRecords || []; form.value.disciplines = form.value.disciplines || []; title.value = '修改教师'; open.value = true })
+  getTeacher(teacherId).then(response => {
+    form.value = response.data
+    form.value.educations = form.value.educations || []
+    form.value.titleRecords = form.value.titleRecords || []
+    form.value.disciplines = form.value.disciplines || []
+    // 如果已关联用户，显示在选项中
+    if (form.value.userId && form.value.loginName) {
+      selectedUserDisplay.value = form.value.loginName + ' (' + form.value.teacherName + ')'
+    } else {
+      selectedUserDisplay.value = ''
+    }
+    title.value = '修改教师'
+    open.value = true
+  })
 }
 function cancel() { open.value = false; reset() }
 function submitForm() {
-  if (form.value.teacherId) { updateTeacher(form.value).then(() => { proxy.$modal.msgSuccess('修改成功'); open.value = false; getList() }) }
-  else { addTeacher(form.value).then(() => { proxy.$modal.msgSuccess('新增成功'); open.value = false; getList() }) }
+  const data = { ...form.value }
+  // 如果用户清空了关联账号，发送哨兵值 -1
+  if (userCleared.value) {
+    data.userId = -1
+  }
+  if (form.value.teacherId) { updateTeacher(data).then(() => { proxy.$modal.msgSuccess('修改成功'); open.value = false; getList() }) }
+  else { addTeacher(data).then(() => { proxy.$modal.msgSuccess('新增成功'); open.value = false; getList() }) }
 }
 function handleDelete(row) {
   const teacherIds = row.teacherId || ids.value
@@ -242,6 +322,57 @@ function parseIdCard() {
 }
 function maskPhone(phone) { return phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '' }
 function maskIdCard(id) { return id ? id.replace(/(\d{6})\d{8}(\d{4})/, '$1********$2') : '' }
+
+function searchUsers(query) {
+  if (!query || query.length < 1) { userOptions.value = []; return }
+  userSearchLoading.value = true
+  listUser({ userName: query, pageNum: 1, pageSize: 20 }).then(res => {
+    userOptions.value = (res.rows || []).map(u => ({ userId: u.userId, userName: u.userName, nickName: u.nickName }))
+  }).finally(() => { userSearchLoading.value = false })
+}
+function onClearUser() {
+  userCleared.value = true
+  form.value.userId = undefined
+  selectedUserDisplay.value = ''
+  tempPickedUser.value = null
+}
+
+function openUserPicker() {
+  userSearchKey.value = ''
+  userSearchList.value = []
+  userPickerChecked.value = form.value.userId ? [form.value.userId] : []
+  tempPickedUser.value = null
+  userPickerOpen.value = true
+}
+function doSearchUsers() {
+  const key = userSearchKey.value.trim()
+  if (!key) { userSearchList.value = []; return }
+  userSearchLoading.value = true
+  listUser({ userName: key, pageNum: 1, pageSize: 50 }).then(res => {
+    userSearchList.value = (res.rows || []).map(u => ({ userId: u.userId, userName: u.userName, nickName: u.nickName, phonenumber: u.phonenumber }))
+  }).finally(() => { userSearchLoading.value = false })
+}
+function onCheckUser(u) {
+  // 单选模式：只保留当前勾选的
+  userPickerChecked.value = [u.userId]
+  tempPickedUser.value = u
+}
+function confirmUserPicker() {
+  if (tempPickedUser.value) {
+    form.value.userId = tempPickedUser.value.userId
+    selectedUserDisplay.value = tempPickedUser.value.userName + ' (' + tempPickedUser.value.nickName + ')'
+    userCleared.value = false
+  }
+  userPickerOpen.value = false
+}
+function clearUserLink() {
+  form.value.userId = undefined
+  selectedUserDisplay.value = ''
+  userPickerChecked.value = []
+  tempPickedUser.value = null
+  userCleared.value = true
+  userPickerOpen.value = false
+}
 
 getDeptTree()
 getList()

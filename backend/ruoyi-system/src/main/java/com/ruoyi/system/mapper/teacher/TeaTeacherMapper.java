@@ -33,6 +33,7 @@ public interface TeaTeacherMapper
      * @return 教师信息
      */
     public TeaTeacher checkTeacherNoUnique(String teacherNo);
+    public TeaTeacher selectTeacherByUserId(Long userId);
 
     /**
      * 新增教师信息
@@ -65,6 +66,14 @@ public interface TeaTeacherMapper
      * @return 结果
      */
     public int deleteTeacherByIds(Long[] teacherIds);
+
+    /**
+     * 清除教师关联的系统用户ID
+     * 
+     * @param teacherId 教师ID
+     * @return 结果
+     */
+    public int clearTeacherUserId(Long teacherId);
 
     /**
      * 查询所有在职教师（含当前职称）

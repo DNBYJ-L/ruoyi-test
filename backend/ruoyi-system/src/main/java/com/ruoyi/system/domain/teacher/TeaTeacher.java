@@ -84,6 +84,9 @@ public class TeaTeacher extends BaseEntity
     @Excel(name = "状态", readConverterExp = "0=在职,1=离职,2=退休")
     private String status;
 
+    /** 关联系统用户ID */
+    private Long userId;
+
     /** 删除标志（0代表存在 2代表删除） */
     private String delFlag;
 
@@ -94,6 +97,9 @@ public class TeaTeacher extends BaseEntity
     /** 当前职称 */
     @Excel(name = "当前职称")
     private String currentTitle;
+
+    /** 关联系统用户登录名（非持久化） */
+    private String loginName;
 
     /** 学历列表 */
     private List<TeaEducation> educations;
@@ -264,6 +270,16 @@ public class TeaTeacher extends BaseEntity
         this.status = status;
     }
 
+    public Long getUserId()
+    {
+        return userId;
+    }
+
+    public void setUserId(Long userId)
+    {
+        this.userId = userId;
+    }
+
     public String getDelFlag()
     {
         return delFlag;
@@ -292,6 +308,16 @@ public class TeaTeacher extends BaseEntity
     public void setCurrentTitle(String currentTitle)
     {
         this.currentTitle = currentTitle;
+    }
+
+    public String getLoginName()
+    {
+        return loginName;
+    }
+
+    public void setLoginName(String loginName)
+    {
+        this.loginName = loginName;
     }
 
     public List<TeaEducation> getEducations()

@@ -23,7 +23,13 @@
       <el-table-column label="人才层次" prop="talentLevel" width="120"><template #default="scope"><dict-tag :options="tea_talent_level" :value="scope.row.talentLevel" /></template></el-table-column>
       <el-table-column label="年度" prop="planYear" width="80" align="center" />
       <el-table-column label="计划/已录" width="120" align="center"><template #default="scope">{{ scope.row.actualCount }}/{{ scope.row.planCount }}<el-progress :percentage="scope.row.planCount > 0 ? Math.round(scope.row.actualCount / scope.row.planCount * 100) : 0" :stroke-width="6" style="margin-top:4px" /></template></el-table-column>
-      <el-table-column label="状态" prop="status" width="100" align="center"><template #default="scope"><dict-tag :options="tea_recruit_status" :value="scope.row.status" /></template></el-table-column>
+      <el-table-column label="状态" prop="status" width="130" align="center">
+        <template #default="scope">
+          <el-select v-model="scope.row.status" size="small" style="width:100%" @change="handleStatusChange(scope.row)">
+            <el-option v-for="d in tea_recruit_status" :key="d.value" :label="d.label" :value="d.value" />
+          </el-select>
+        </template>
+      </el-table-column>
       <el-table-column label="创建时间" prop="createTime" width="160" />
       <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="scope">
@@ -44,7 +50,6 @@
           <el-col :span="12"><el-form-item label="年度" prop="planYear"><el-input-number v-model="form.planYear" :min="2020" :max="2030" style="width:100%" /></el-form-item></el-col>
         </el-row>
         <el-form-item label="人才层次" prop="talentLevel"><el-select v-model="form.talentLevel" placeholder="请选择" style="width:100%"><el-option v-for="d in tea_talent_level" :key="d.value" :label="d.label" :value="d.value" /></el-select></el-form-item>
-        <el-form-item label="状态" prop="status"><el-select v-model="form.status" style="width:100%"><el-option v-for="d in tea_recruit_status" :key="d.value" :label="d.label" :value="d.value" /></el-select></el-form-item>
         <el-form-item label="备注"><el-input v-model="form.remark" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
@@ -88,5 +93,6 @@ function handleDelete(row) { proxy.$modal.confirm('确认删除？').then(() => 
 function handleSelectionChange(selection) { ids.value = selection.map(i => i.planId); multiple.value = !selection.length }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm('queryRef'); handleQuery() }
+function handleStatusChange(row) { updateRecruitPlan({ planId: row.planId, status: row.status }).then(() => proxy.$modal.msgSuccess('状态修改成功')).catch(() => getList()) }
 getList()
 </script>

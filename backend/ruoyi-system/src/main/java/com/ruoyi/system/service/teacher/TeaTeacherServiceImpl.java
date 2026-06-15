@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.system.domain.teacher.TeaTeacher;
 import com.ruoyi.system.domain.teacher.TeaEducation;
 import com.ruoyi.system.domain.teacher.TeaTitleRecord;
@@ -13,6 +14,7 @@ import com.ruoyi.system.mapper.teacher.TeaTeacherMapper;
 import com.ruoyi.system.mapper.teacher.TeaEducationMapper;
 import com.ruoyi.system.mapper.teacher.TeaTitleRecordMapper;
 import com.ruoyi.system.mapper.teacher.TeaDisciplineMapper;
+import com.ruoyi.system.service.ISysUserService;
 
 /**
  * 教师信息 服务层处理
@@ -33,6 +35,9 @@ public class TeaTeacherServiceImpl implements ITeaTeacherService
 
     @Autowired
     private TeaDisciplineMapper disciplineMapper;
+
+    @Autowired
+    private ISysUserService userService;
 
     /**
      * 查询教师列表
@@ -74,6 +79,19 @@ public class TeaTeacherServiceImpl implements ITeaTeacherService
         return true;
     }
 
+    @Override
+    public TeaTeacher selectTeacherByUserId(Long userId)
+    {
+        TeaTeacher teacher = teacherMapper.selectTeacherByUserId(userId);
+        if (teacher != null)
+        {
+            teacher.setEducations(educationMapper.selectEducationByTeacherId(teacher.getTeacherId()));
+            teacher.setTitleRecords(titleRecordMapper.selectTitleRecordByTeacherId(teacher.getTeacherId()));
+            teacher.setDisciplines(disciplineMapper.selectDisciplineByTeacherId(teacher.getTeacherId()));
+        }
+        return teacher;
+    }
+
     /**
      * 新增教师信息（含子表联动保存）
      */
@@ -98,7 +116,16 @@ public class TeaTeacherServiceImpl implements ITeaTeacherService
         titleRecordMapper.deleteTitleRecordByTeacherId(teacher.getTeacherId());
         disciplineMapper.deleteDisciplineByTeacherId(teacher.getTeacherId());
         insertSubTables(teacher);
-        return teacherMapper.updateTeacher(teacher);
+        // 处理清除关联用户的哨兵值：userId = -1L 表示清除关联
+        if (teacher.getUserId() != null && teacher.getUserId() == -1L)
+        {
+            teacherMapper.clearTeacherUserId(teacher.getTeacherId());
+            teacher.setUserId(null);
+        }
+        int rows = teacherMapper.updateTeacher(teacher);
+        // 以教师管理数据为第一优先级，同步到关联的系统用户
+        syncTeacherToSysUser(teacher);
+        return rows;
     }
 
     /**
@@ -112,6 +139,41 @@ public class TeaTeacherServiceImpl implements ITeaTeacherService
         titleRecordMapper.deleteTitleRecordByTeacherIds(teacherIds);
         disciplineMapper.deleteDisciplineByTeacherIds(teacherIds);
         return teacherMapper.deleteTeacherByIds(teacherIds);
+    }
+
+    /**
+     * 以教师管理数据为第一优先级，同步基本信息到关联的系统用户
+     */
+    private void syncTeacherToSysUser(TeaTeacher teacher)
+    {
+        if (teacher.getUserId() == null || teacher.getUserId() <= 0)
+        {
+            return;
+        }
+        SysUser sysUser = new SysUser();
+        sysUser.setUserId(teacher.getUserId());
+        // 同步昵称
+        if (StringUtils.isNotEmpty(teacher.getTeacherName()))
+        {
+            sysUser.setNickName(teacher.getTeacherName());
+        }
+        // 同步手机号
+        if (StringUtils.isNotEmpty(teacher.getPhone()))
+        {
+            sysUser.setPhonenumber(teacher.getPhone());
+        }
+        // 同步邮箱
+        if (StringUtils.isNotEmpty(teacher.getEmail()))
+        {
+            sysUser.setEmail(teacher.getEmail());
+        }
+        // 同步性别
+        if (StringUtils.isNotEmpty(teacher.getGender()))
+        {
+            sysUser.setSex(teacher.getGender());
+        }
+        sysUser.setUpdateBy(teacher.getUpdateBy());
+        userService.updateUserProfile(sysUser);
     }
 
     /**

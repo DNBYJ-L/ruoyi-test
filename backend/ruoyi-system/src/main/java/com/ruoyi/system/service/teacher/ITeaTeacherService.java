@@ -33,6 +33,7 @@ public interface ITeaTeacherService
      * @return 结果
      */
     public boolean checkTeacherNoUnique(TeaTeacher teacher);
+    public TeaTeacher selectTeacherByUserId(Long userId);
 
     /**
      * 新增教师信息
