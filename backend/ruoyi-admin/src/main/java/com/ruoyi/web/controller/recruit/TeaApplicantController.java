@@ -45,5 +45,8 @@ public class TeaApplicantController extends BaseController
     @PreAuthorize("@ss.hasPermi('teacher:applicant:approve')")
     @Log(title = "应聘审批", businessType = BusinessType.UPDATE)
     @PutMapping("/approve/{applicantId}/{targetStatus}")
-    public AjaxResult approve(@PathVariable Long applicantId, @PathVariable String targetStatus) { return toAjax(applicantService.approveApplicant(applicantId, targetStatus, getUsername())); }
+    public AjaxResult approve(@PathVariable Long applicantId, @PathVariable String targetStatus)
+    {
+        return success(applicantService.approveApplicant(applicantId, targetStatus, getUsername()));
+    }
 }

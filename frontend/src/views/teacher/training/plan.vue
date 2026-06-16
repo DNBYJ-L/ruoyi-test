@@ -24,7 +24,13 @@
       <el-table-column label="课时" prop="totalHours" width="60" align="center" />
       <el-table-column label="主讲人" prop="instructorName" width="100" />
       <el-table-column label="预算" prop="budget" width="90" align="right" />
-      <el-table-column label="状态" prop="status" width="80" align="center"><template #default="scope"><dict-tag :options="tea_training_status" :value="scope.row.status" /></template></el-table-column>
+      <el-table-column label="状态" prop="status" width="130" align="center">
+        <template #default="scope">
+          <el-select v-model="scope.row.status" size="small" style="width: 110px" @change="handleStatusChange(scope.row)">
+            <el-option v-for="d in tea_training_status" :key="d.value" :label="d.label" :value="d.value" />
+          </el-select>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" width="150" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['teacher:training:edit']">编辑</el-button>
@@ -55,7 +61,7 @@
         <el-table :data="form.courses" border size="small">
           <el-table-column label="课程名称"><template #default="scope"><el-input v-model="scope.row.courseName" /></template></el-table-column>
           <el-table-column label="授课教师" width="120"><template #default="scope"><el-input v-model="scope.row.instructor" /></template></el-table-column>
-          <el-table-column label="课时" width="80"><template #default="scope"><el-input-number v-model="scope.row.hours" :min="0" size="small" style="width:100%" /></template></el-table-column>
+          <el-table-column label="课时" width="140"><template #default="scope"><el-input-number v-model="scope.row.hours" :min="0" size="small" controls-position="right" style="width:100%" /></template></el-table-column>
           <el-table-column label="操作" width="60" align="center"><template #default="scope"><el-button link type="danger" icon="Delete" @click="form.courses.splice(scope.$index, 1)" /></template></el-table-column>
         </el-table>
       </el-form>
@@ -81,6 +87,12 @@ function handleAdd() { reset(); title.value = '新增培训计划'; open.value =
 function handleUpdate(row) { reset(); getTrainingPlan(row.planId).then(res => { form.value = res.data; form.value.courses = form.value.courses || []; title.value = '修改培训计划'; open.value = true }) }
 function cancel() { open.value = false }
 function submitForm() { if (form.value.planId) updateTrainingPlan(form.value).then(() => { proxy.$modal.msgSuccess('修改成功'); open.value = false; getList() }); else addTrainingPlan(form.value).then(() => { proxy.$modal.msgSuccess('新增成功'); open.value = false; getList() }) }
+function handleStatusChange(row) {
+  const statusLabel = (tea_training_status.value.find(d => d.value === row.status) || {}).label || row.status
+  proxy.$modal.confirm('确认将【' + row.planName + '】的状态变更为【' + statusLabel + '】吗？').then(() => {
+    updateTrainingPlan({ planId: row.planId, status: row.status }).then(() => { proxy.$modal.msgSuccess('状态已更新') })
+  }).catch(() => { getList() })
+}
 function handleDelete(row) { proxy.$modal.confirm('确认删除？').then(() => delTrainingPlan(row.planId)).then(() => getList()).catch(() => {}) }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm('queryRef'); handleQuery() }

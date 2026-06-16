@@ -33,6 +33,9 @@ public class TeaTrainingPlan extends BaseEntity
     private String syllabus;
     private List<TeaTrainingCourse> courses;
 
+    /** 多状态查询条件（非持久化） */
+    private List<String> statusList;
+
     public Long getPlanId() { return planId; }
     public void setPlanId(Long planId) { this.planId = planId; }
     public String getPlanName() { return planName; }
@@ -63,4 +66,6 @@ public class TeaTrainingPlan extends BaseEntity
     public void setSyllabus(String syllabus) { this.syllabus = syllabus; }
     public List<TeaTrainingCourse> getCourses() { return courses; }
     public void setCourses(List<TeaTrainingCourse> courses) { this.courses = courses; }
+    public List<String> getStatusList() { return statusList; }
+    public void setStatusList(List<String> statusList) { this.statusList = statusList; }
 }

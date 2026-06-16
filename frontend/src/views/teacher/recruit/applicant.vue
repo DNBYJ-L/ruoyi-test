@@ -143,7 +143,33 @@ function handleUpdate(row) { reset(); getApplicant(row.applicantId).then(res => 
 function cancel() { open.value = false }
 function submitForm() { if (form.value.applicantId) updateApplicant(form.value).then(() => { proxy.$modal.msgSuccess('修改成功'); open.value = false; getList() }); else addApplicant(form.value).then(() => { proxy.$modal.msgSuccess('新增成功'); open.value = false; getList() }) }
 function handleDelete(row) { proxy.$modal.confirm('确认删除？').then(() => delApplicant(row.applicantId)).then(() => getList()).catch(() => {}) }
-function handleApprove(row, status) { proxy.$modal.confirm('确认将状态变更为' + ['待审','初审通过','面试中','录用','拒绝'][parseInt(status)] + '？').then(() => approveApplicant(row.applicantId, status)).then(() => { proxy.$modal.msgSuccess('审批成功'); getList() }).catch(() => {}) }
+function handleApprove(row, status) {
+  const statusMap = { '1': '初审通过', '2': '进入面试', '3': '录用', '4': '拒绝' }
+  const statusName = statusMap[status] || status
+  // 敏感操作二次确认
+  let confirmMsg = `确认将【${row.name}】的状态变更为【${statusName}】吗？`
+  if (status === '3') {
+    confirmMsg += '\n\n录用后系统将自动为该用户生成教师端账号和密码。'
+  } else if (status === '4') {
+    confirmMsg += '\n\n拒绝后该应聘者将无法继续后续流程。'
+  }
+  proxy.$modal.confirm(confirmMsg).then(() => {
+    approveApplicant(row.applicantId, status).then(res => {
+      const data = res.data || {}
+      if (status === '3' && data.userName) {
+        // 录用成功，弹窗展示生成的账号信息
+        proxy.$alert(
+          `【${data.name}】已成功录用！\n\n该用户的账号为：${data.userName}\n密码为：${data.password}\n\n请妥善保管以上信息。`,
+          '录用成功',
+          { confirmButtonText: '确定', type: 'success' }
+        )
+      } else {
+        proxy.$modal.msgSuccess('审批成功')
+      }
+      getList()
+    })
+  }).catch(() => {})
+}
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm('queryRef'); handleQuery() }
 function addEducation() { if (!form.value.educations) form.value.educations = []; form.value.educations.push({ school: '', major: '', degree: '', startDate: '', endDate: '', advisor: '', thesis: '' }) }

@@ -35,7 +35,7 @@
 			<if test="teacherId != null">AND r.teacher_id = #{teacherId}</if>
 			<if test="passStatus != null and passStatus != ''">AND r.pass_status = #{passStatus}</if>
 		</where>
-		order by r.result_id desc
+		order by p.plan_name asc
 	</select>
 	<select id="selectTrainingResultById" parameterType="Long" resultMap="Result">
 		<include refid="selectVo"/> where r.result_id = #{resultId}

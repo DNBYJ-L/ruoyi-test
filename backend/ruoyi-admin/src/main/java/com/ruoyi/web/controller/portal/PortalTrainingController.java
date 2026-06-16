@@ -1,5 +1,6 @@
 package com.ruoyi.web.controller.portal;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,14 +39,14 @@ public class PortalTrainingController extends BaseController
     private ITeaTrainingResultService trainingResultService;
 
     /**
-     * 查看可报名的培训计划（status=2 进行中）
+     * 查看可报名的培训计划（status=1 已发布 或 status=2 进行中）
      */
     @PreAuthorize("@ss.hasPermi('portal:training:query')")
     @GetMapping("/plans")
     public TableDataInfo plans()
     {
         TeaTrainingPlan query = new TeaTrainingPlan();
-        query.setStatus("2"); // 进行中
+        query.setStatusList(Arrays.asList("1", "2")); // 已发布 + 进行中
         startPage();
         List<TeaTrainingPlan> list = trainingPlanService.selectTrainingPlanList(query);
         return getDataTable(list);
@@ -60,6 +61,15 @@ public class PortalTrainingController extends BaseController
     public AjaxResult enroll(@RequestBody TeaTrainingEnrollment enrollment)
     {
         Long teacherId = TeacherContext.getCurrentTeacherId();
+        // 防重复报名检查
+        TeaTrainingEnrollment check = new TeaTrainingEnrollment();
+        check.setPlanId(enrollment.getPlanId());
+        check.setTeacherId(teacherId);
+        List<TeaTrainingEnrollment> existing = enrollmentService.selectEnrollmentList(check);
+        if (existing != null && !existing.isEmpty())
+        {
+            return error("您已报名过该培训计划，请勿重复报名");
+        }
         enrollment.setTeacherId(teacherId);
         enrollment.setApproveStatus("0"); // 待审批
         return toAjax(enrollmentService.insertEnrollment(enrollment));

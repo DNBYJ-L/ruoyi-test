@@ -28,6 +28,10 @@
 			<if test="planName != null and planName != ''">AND plan_name like concat('%', #{planName}, '%')</if>
 			<if test="trainingType != null and trainingType != ''">AND training_type = #{trainingType}</if>
 			<if test="status != null and status != ''">AND status = #{status}</if>
+			<if test="statusList != null and statusList.size() > 0">
+				AND status IN
+				<foreach collection="statusList" item="s" open="(" separator="," close=")">#{s}</foreach>
+			</if>
 		</where>
 		order by plan_id desc
 	</select>
